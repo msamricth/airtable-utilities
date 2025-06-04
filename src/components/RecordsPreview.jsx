@@ -1,10 +1,9 @@
-// src/components/RecordsPreview.jsx
 import { useState, useEffect } from 'react'
 
-export default function RecordsPreview({ records, credentials }) {
+export default function RecordsPreview({ records, credentials, emailField}) {
   if (!credentials) return null
 
-  const [mergedRecords, setMergedRecords] = useState([])
+  const [mergedRecords, setMergedRecords] = useState([])  
   const [sentIds, setSentIds] = useState([])
   const [duplicateGroups, setDuplicateGroups] = useState([])
 
@@ -16,41 +15,13 @@ export default function RecordsPreview({ records, credentials }) {
   }, [records])
   const emailMap = {}
   records.forEach((r) => {
-    const email = r.fields?.['Primary Email']?.toLowerCase()
+    const email = r.fields?.[emailField]?.toLowerCase()
     if (!email) return
     if (!emailMap[email]) emailMap[email] = []
     emailMap[email].push(r)
   })
-  function getDuplicateRecords(records) {
-    const emailMap = {}
-    const duplicates = []
-    console.log('🎯 all Records:', records)
-  
-    for (const record of records) {
-      const email = record.fields?.['Primary Email']?.toLowerCase()
-      if (!email) continue
-  
-      console.log('Email addresses:', email)
-      if (!emailMap[email]) {
-        emailMap[email] = [record]
-      } else {
-        emailMap[email].push(record)
-      }
-    }
-  
-    console.log('Email Map:', emailMap)
-    for (const group of Object.values(emailMap)) {
-      if (group.length > 1) {
-        duplicates.push(...group)
-      }
-    }
-  
-    return duplicates
-  }
-  useEffect(() => {
-    const dupes = getDuplicateRecords(records)
-    console.log('🎯 Duplicate Records:', dupes)
-  }, [records])
+
+
   
   const handleMerge = () => {
     const duplicates = Object.values(emailMap).filter(group => group.length > 1)
@@ -111,7 +82,7 @@ export default function RecordsPreview({ records, credentials }) {
           <h3 className="text-lg font-semibold text-red-600 mb-2">Duplicate Groups</h3>
           {duplicateGroups.map((group, gIndex) => (
             <div key={gIndex} className="mb-4 p-2 border rounded bg-red-50">
-              <p className="mb-2 font-medium">Email: {group[0].fields['Primary Email']}</p>
+              <p className="mb-2 font-medium">Email: {group[0].fields[emailField]}</p>
               <table className="w-full table-auto border">
                 <thead>
                   <tr>
@@ -139,7 +110,7 @@ export default function RecordsPreview({ records, credentials }) {
 
       {mergedRecords.length > 0 && (
         <>
-          <table className="min-w-3xl table-auto border mb-4 max-w-3xl overflow-scroll">
+          <table className="table-auto border mb-4 w-[50vw] overflow-scroll">
             <thead>
               <tr>
                 {Object.keys(mergedRecords[0].fields).map((key) => (

@@ -9,11 +9,17 @@ function App() {
   const [records, setRecords] = useState([])
   const [mergedRecords, setMergedRecords] = useState([])
   const [suspiciousEmails, setSuspiciousEmails] = useState([])
+  const [emailField, setEmailField] = useState('Primary Email')
 
   return (
     <main className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Airtable Merge Tool</h1>
-      <AuthForm onSubmit={setCredentials} />
+      <AuthForm
+        onSubmit={(creds) => {
+          setCredentials(creds)
+          setEmailField(creds.emailField || 'Primary Email')
+        }}
+      />
       {credentials && (
         <RecordsFetcher
           credentials={credentials}
@@ -22,8 +28,8 @@ function App() {
             const sus = []
 
             rawRecords.forEach((r) => {
-              const email = r.fields.email?.toLowerCase()
-              if (!email || !/^\S+@\S+\.\S+$/.test(email) || /tempmail|mailinator|10minutemail/.test(email)) {
+              const email = r.fields[emailField]?.toLowerCase()
+              if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || /tempmail|mailinator|10minutemail/.test(email)) {
                 sus.push(r)
                 return
               }
@@ -41,15 +47,15 @@ function App() {
             setMergedRecords(Object.values(emailMap))
             setSuspiciousEmails(sus)
             setRecords(rawRecords)
-            
           }}
         />
       )}
       <div className="flex gap-6">
-        {mergedRecords.length > 0 && <RecordsPreview records={mergedRecords} />}
+        {mergedRecords.length > 0 && <RecordsPreview records={mergedRecords} emailField={emailField} />}
         {suspiciousEmails.length > 0 && (
           <SuspiciousEmails
             records={suspiciousEmails}
+            emailField={emailField}
             onDelete={async (id) => {
               const { apiKey, baseId, tableName } = credentials
 
@@ -64,7 +70,7 @@ function App() {
             }}
           />
         )}
-        <RecordsPreview records={records} credentials={credentials} />
+        <RecordsPreview records={records} credentials={credentials} emailField={emailField} />
       </div>
     </main>
   )

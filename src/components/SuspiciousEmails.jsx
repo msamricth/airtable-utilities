@@ -1,31 +1,39 @@
-// src/components/SuspiciousEmails.jsx
 import { useMemo } from 'react'
 import validator from 'email-validator'
 import disposableDomains from 'disposable-email-domains'
-const SUSPICIOUS_DOMAINS = ['tempmail', 'mailinator', '10minutemail', 'guerrillamail', 'trashmail', 'dont-reply.me']
-const EMAIL_REGEX = /^\S+@\S+\.\S+$/
-const SUSPICIOUS_PATTERNS = [
-  /^[a-z]\.[a-z]+\d*@gmail\.com$/, // e.g., m.itaxebandilis@gmail.com
-  /^[a-z]{1,2}\d+@\S+$/,           // e.g., s2@dykaya.com
-  /^[A-Z][a-z]+\d+@gmail\.com$/,   // e.g., Etta7Olson9739@gmail.com
-  /@gmail(?!\.com)/                 // any gmail-like domain not exactly gmail.com
+
+const SUSPICIOUS_DOMAINS = [
+  'tempmail',
+  'mailinator',
+  '10minutemail',
+  'guerrillamail',
+  'trashmail',
+  'dont-reply.me',
 ]
 
-export default function SuspiciousEmails({ records, onDelete }) {
+const EMAIL_REGEX = /^\S+@\S+\.\S+$/
+const SUSPICIOUS_PATTERNS = [
+  /^[a-z]\.[a-z]+\d*@gmail\.com$/,   // e.g., m.itaxebandilis@gmail.com
+  /^[a-z]{1,2}\d+@\S+$/,             // e.g., s2@dykaya.com
+  /^[A-Z][a-z]+\d+@gmail\.com$/,     // e.g., Etta7Olson9739@gmail.com
+  /@gmail(?!\.com)/                  // e.g., gmail.ru, gmail.org, etc.
+]
+
+export default function SuspiciousEmails({ records, onDelete, emailField }) {
   const filtered = useMemo(() => {
     return records.filter(record => {
-      const email = record.fields?.['Primary Email']?.toLowerCase()
+      const email = record.fields?.[emailField]?.toLowerCase()
       if (!email || !EMAIL_REGEX.test(email)) return true
+      if (!validator.validate(email)) return true
 
-      if (SUSPICIOUS_DOMAINS.some(domain => email.includes(domain))) return true
+      const domain = email.split('@')[1]
+      if (disposableDomains.includes(domain)) return true
+      if (SUSPICIOUS_DOMAINS.some(bad => email.includes(bad))) return true
+      if (SUSPICIOUS_PATTERNS.some(pattern => pattern.test(email))) return true
 
-        if (!validator.validate(email)) return true
-        const domain = email.split('@')[1]
-         
-         if (disposableDomains.includes(domain)) return true
-      return SUSPICIOUS_PATTERNS.some(pattern => pattern.test(email))
+      return false
     })
-  }, [records])
+  }, [records, emailField])
 
   const handleBulkDelete = () => {
     filtered.forEach(record => onDelete(record.id))
@@ -45,7 +53,7 @@ export default function SuspiciousEmails({ records, onDelete }) {
       <ul className="space-y-2">
         {filtered.map((record) => (
           <li key={record.id} className="flex justify-between items-center border p-2 rounded">
-            <span>{record.fields?.['Primary Email'] || 'N/A'}</span>
+            <span>{record.fields?.[emailField] || 'N/A'}</span>
             <button
               className="text-sm text-red-500 hover:underline"
               onClick={() => onDelete(record.id)}

@@ -1,4 +1,3 @@
-// src/components/AuthForm.jsx
 import { useState, useEffect } from 'react'
 
 export default function AuthForm({ onSubmit }) {
@@ -63,6 +62,7 @@ export default function AuthForm({ onSubmit }) {
       <input className="input" placeholder="Base ID" value={baseId} onChange={e => setBaseId(e.target.value)} required />
       <input className="input" placeholder="Table Name" value={tableName} onChange={e => setTableName(e.target.value)} required />
       <input className="input" placeholder="View Name" value={viewName} onChange={e => setViewName(e.target.value)} required />
+      <input className="input" placeholder="Email Field" value={emailField} onChange={e => setEmailField(e.target.value)} required />
       <button type="submit" className="btn">Connect</button>
     </form>
   )
